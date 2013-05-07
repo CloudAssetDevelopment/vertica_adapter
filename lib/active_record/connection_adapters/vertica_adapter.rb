@@ -113,7 +113,7 @@ module ActiveRecord
       end
 
       def tables(name = nil) #:nodoc:
-        sql = "SELECT * FROM tables WHERE table_schema = #{quote_column_name(schema_name)}"
+        sql = "SELECT * FROM tables WHERE table_schema = '#{schema_name}'"
 
         tables = []
         execute(sql, name) { |field| tables << field[:table_name] }
@@ -121,7 +121,7 @@ module ActiveRecord
       end
 
       def columns(table_name, name = nil)#:nodoc:
-        sql = "SELECT * FROM columns WHERE table_name = #{quote_column_name(table_name)}"
+        sql = "SELECT * FROM columns WHERE table_name = '#{table_name}'"
 
         columns = []
         execute(sql, name){ |field| columns << VerticaColumn.new(field[:column_name],field[:column_default],field[:data_type],field[:is_nullable])}
@@ -142,7 +142,7 @@ module ActiveRecord
 
       ## QUOTING
       def quote_column_name(name) #:nodoc:
-        "'#{name}'"
+        "#{name}"
       end
 
       def quote_table_name(name) #:nodoc:
@@ -159,6 +159,49 @@ module ActiveRecord
 
       def quoted_false
         "0"
+      end
+
+      def table_definition
+        TableDefinition.new self
+      end
+
+      def add_index(table_name, column_name, options = {})
+        #noop
+      end
+
+      def remove_index(table_name, options = {})
+        #noop
+      end
+
+      def rename_index(table_name, old_name, new_name)
+        #noop
+      end
+
+      def select_rows(sql, name = nil)
+        select_raw(sql, name).last
+      end
+
+      def select_raw(sql, name = nil)
+        res = execute(sql, name)
+        return res.columns.collect{|c| c.name}, res.rows
+      end
+
+      class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
+        def primary_key(name)
+          column(name, 'integer primary key')
+        end
+
+        def string(name, opts = {})
+          if opts[:limit]
+            column(name, "varchar(#{opts[:limit]})")
+          else
+            column(name, 'varchar')
+          end
+        end
+
+        def text(name)
+          column(name, 'varchar')
+        end
       end
 
     end
