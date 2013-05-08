@@ -60,6 +60,10 @@ module ActiveRecord
     class VerticaColumn < Column
     end
 
+    class BindSubstitution < Arel::Visitors::MySQL
+      include Arel::Visitors::BindVisitor
+    end
+
     class Vertica < AbstractAdapter
       def supports_explain?
         false
@@ -71,8 +75,8 @@ module ActiveRecord
 
       def initialize(*args)
         super(*args)
-          @visitor = Arel::Visitors::MySQL.new self
-          # @visitor = BindSubstitution.new self
+        # @visitor = Arel::Visitors::MySQL.new self
+        @visitor = BindSubstitution.new self
       end
 
       def adapter_name #:nodoc:
