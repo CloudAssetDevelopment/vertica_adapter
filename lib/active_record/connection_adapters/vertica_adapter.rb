@@ -115,6 +115,11 @@ module ActiveRecord
         end
       end
 
+      def exec_query(sql, name = 'SQL', binds = [])
+        result = execute(sql, name)
+        ActiveRecord::Result.new(result.columns.map(&:name), result.rows.map(&:values))
+      end
+
       def schema_name
         @schema ||= @connection.options[:schema]
       end
@@ -145,6 +150,36 @@ module ActiveRecord
 
       def primary_key(table)
         'id'
+      end
+
+      def begin_db_transaction
+        execute "BEGIN"
+      rescue Exception
+        # Transactions aren't supported
+      end
+
+      def commit_db_transaction #:nodoc:
+        execute "COMMIT"
+      rescue Exception
+        # Transactions aren't supported
+      end
+
+      def rollback_db_transaction #:nodoc:
+        execute "ROLLBACK"
+      rescue Exception
+        # Transactions aren't supported
+      end
+
+      def create_savepoint
+        execute("SAVEPOINT #{current_savepoint_name}")
+      end
+
+      def rollback_to_savepoint
+        execute("ROLLBACK TO SAVEPOINT #{current_savepoint_name}")
+      end
+
+      def release_savepoint
+        execute("RELEASE SAVEPOINT #{current_savepoint_name}")
       end
 
       ## QUOTING
@@ -191,6 +226,10 @@ module ActiveRecord
       def select_raw(sql, name = nil)
         res = execute(sql, name)
         return res.columns.collect{|c| c.name}, res.rows
+      end
+
+      def last_inserted_id(result)
+        @connection.query('select last_insert_id()').rows[0][:last_insert_id]
       end
 
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
