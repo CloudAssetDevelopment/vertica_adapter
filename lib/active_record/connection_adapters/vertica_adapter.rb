@@ -192,7 +192,7 @@ module ActiveRecord
 
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         def primary_key(name)
-          column(name, 'integer primary key')
+          column(name, 'auto_increment primary key')
         end
 
         def string(name, opts = {})
