@@ -58,6 +58,9 @@ module ActiveRecord
 
   module ConnectionAdapters
     class VerticaColumn < Column
+      def self.value_to_integer(value)
+        "" == value ? nil : super
+      end
     end
 
     class BindSubstitution < Arel::Visitors::MySQL
