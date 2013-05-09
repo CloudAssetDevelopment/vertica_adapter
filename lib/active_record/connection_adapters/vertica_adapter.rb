@@ -120,6 +120,14 @@ module ActiveRecord
         ActiveRecord::Result.new(result.columns.map(&:name), result.rows.map(&:values))
       end
 
+      def exec_update(sql, name = 'SQL', binds = [])
+        if sql =~ /(.+)\s+ORDER\s+BY\s+[^\s](\s+(ASC|DESC))?/i
+          super $1, name, binds
+        else
+          super
+        end
+      end
+
       def schema_name
         @schema ||= @connection.options[:schema]
       end
@@ -141,11 +149,11 @@ module ActiveRecord
       end
 
       def select(sql, name = nil, binds = [])
-        log(sql, name) do
-          rows = []
-          @connection.query(sql) {|row| rows << row.stringify_keys }
-          rows
+        rows = []
+        execute(sql, name) do |row|
+          rows << row.stringify_keys
         end
+        rows
       end
 
       def primary_key(table)
@@ -154,20 +162,14 @@ module ActiveRecord
 
       def begin_db_transaction
         execute "BEGIN"
-      rescue Exception
-        # Transactions aren't supported
       end
 
       def commit_db_transaction #:nodoc:
         execute "COMMIT"
-      rescue Exception
-        # Transactions aren't supported
       end
 
       def rollback_db_transaction #:nodoc:
         execute "ROLLBACK"
-      rescue Exception
-        # Transactions aren't supported
       end
 
       def create_savepoint
