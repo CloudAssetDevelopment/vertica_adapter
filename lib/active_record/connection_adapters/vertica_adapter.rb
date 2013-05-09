@@ -58,8 +58,15 @@ module ActiveRecord
 
   module ConnectionAdapters
     class VerticaColumn < Column
-      def self.value_to_integer(value)
-        "" == value ? nil : super
+      def extract_default(default)
+        # blank string or 'NULL' represents NULL
+        if default.blank? || default == 'NULL'
+          nil
+        else
+          # if type is string, vertica sends the default wrapped in single quotes
+          default = default[1..-2] if type == :string
+          super
+        end
       end
     end
 
