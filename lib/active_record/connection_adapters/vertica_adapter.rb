@@ -252,22 +252,56 @@ module ActiveRecord
         true
       end
 
+      def rename_table(name, new_name)
+        execute "ALTER TABLE #{name} RENAME TO #{new_name}"
+      end
+
+      def rename_column(table_name, column_name, new_column_name)
+        execute "ALTER TABLE #{table_name} RENAME COLUMN #{column_name} TO #{new_column_name}"
+      end
+
+      def change_column(table_name, column_name, type, options = {})
+        execute "ALTER TABLE #{table_name} ALTER COLUMN #{column_name} SET DATA TYPE #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
+
+        change_column_default(table_name, column_name, options[:default]) if options_include_default?(options)
+        change_column_null(table_name, column_name, options[:null], options[:default]) if options.key?(:null)
+      end
+
+      def change_column_default(table_name, column_name, default)
+        execute "ALTER TABLE #{table_name} ALTER COLUMN #{column_name} SET DEFAULT #{quote(default)}"
+      end
+
+      def change_column_null(table_name, column_name, null, default = nil)
+        unless null || default.nil?
+          execute("UPDATE #{table_name} SET #{column_name}=#{quote(default)} WHERE #{column_name} IS NULL")
+        end
+        execute("ALTER TABLE #{table_name} ALTER #{column_name} #{null ? 'DROP' : 'SET'} NOT NULL")
+      end
+
+      def native_database_types
+        {
+          :primary_key => "auto_increment PRIMARY KEY",
+          :string => { :name => "varchar", :limit => 255 },
+          :text => {:name => "varchar", :limit => 5000 }
+        }
+      end
+
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
-        def primary_key(name)
-          column(name, 'auto_increment primary key')
-        end
+        # def primary_key(name)
+        #   column(name, 'auto_increment primary key')
+        # end
 
-        def string(name, opts = {})
-          if opts[:limit]
-            column(name, "varchar(#{opts[:limit]})")
-          else
-            column(name, 'varchar')
-          end
-        end
+        # def string(name, opts = {})
+        #   if opts[:limit]
+        #     column(name, "varchar(#{opts[:limit]})")
+        #   else
+        #     column(name, 'varchar')
+        #   end
+        # end
 
-        def text(name)
-          column(name, 'varchar')
-        end
+        # def text(name)
+        #   column(name, 'varchar')
+        # end
       end
 
     end
