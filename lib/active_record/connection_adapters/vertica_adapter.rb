@@ -228,17 +228,28 @@ module ActiveRecord
         #noop
       end
 
+      # Returns an array of arrays containing the field values.
+      # Order is the same as that returned by +columns+.
       def select_rows(sql, name = nil)
-        select_raw(sql, name).last
+        res = execute(sql, name)
+        res.map(&:values)
       end
 
-      def select_raw(sql, name = nil)
-        res = execute(sql, name)
-        return res.columns.collect{|c| c.name}, res.rows
-      end
+      # Do we really need this?
+      # def select_raw(sql, name = nil)
+      #   binding.pry
+      #   res = execute(sql, name)
+      #   cols = res.columns.collect{|c| c.name.to_s}
+      #   rows = res.rows.map(&:stringify_keys)
+      #   return cols, rows
+      # end
 
       def last_inserted_id(result)
         @connection.query('select last_insert_id()').rows[0][:last_insert_id]
+      end
+
+      def supports_migrations?
+        true
       end
 
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
