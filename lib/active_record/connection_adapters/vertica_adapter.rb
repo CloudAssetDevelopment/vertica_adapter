@@ -156,11 +156,9 @@ module ActiveRecord
       end
 
       def select(sql, name = nil, binds = [])
-        rows = []
-        execute(sql, name) do |row|
-          rows << row.stringify_keys
+        log(sql,name) do
+          @connection.query(sql, row_stye: :hash, symbolize_keys: false).to_a
         end
-        rows
       end
 
       def primary_key(table)
