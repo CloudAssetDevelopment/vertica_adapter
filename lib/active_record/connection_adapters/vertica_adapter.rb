@@ -278,6 +278,21 @@ module ActiveRecord
         execute("ALTER TABLE #{table_name} ALTER #{column_name} #{null ? 'DROP' : 'SET'} NOT NULL")
       end
 
+      def add_column(table_name, column_name, type, options = {})
+        add_column_sql = "ALTER TABLE #{table_name} ADD COLUMN #{column_name} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
+        add_column_options!(add_column_sql, options)
+
+        execute add_column_sql
+
+        if options[:null] == false
+          change_column_null(table_name, column_name, false)
+        end
+      end
+
+      def add_column_options!(sql, options) #:nodoc:
+        sql << " DEFAULT #{quote(options[:default], options[:column])}" if options_include_default?(options)
+      end
+
       def native_database_types
         {
           :primary_key => "auto_increment PRIMARY KEY",
