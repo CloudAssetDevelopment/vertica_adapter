@@ -293,7 +293,8 @@ module ActiveRecord
 
       def native_database_types
         {
-          :primary_key => "auto_increment PRIMARY KEY",
+          # encoding auto forces the creation of super projections
+          :primary_key => "auto_increment PRIMARY KEY ENCODING AUTO",
           :string => { :name => "varchar", :limit => 255 },
           :text => {:name => "varchar", :limit => 5000 }
         }
