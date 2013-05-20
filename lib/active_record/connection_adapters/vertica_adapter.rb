@@ -300,6 +300,16 @@ module ActiveRecord
         }
       end
 
+      # def supports_ddl_transactions?
+      #   true
+      # end
+
+      def assume_migrated_upto_version(version, migrations_paths = ActiveRecord::Migrator.migrations_paths)
+        self.transaction do
+          super
+        end
+      end
+
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         # def primary_key(name)
         #   column(name, 'auto_increment primary key')
