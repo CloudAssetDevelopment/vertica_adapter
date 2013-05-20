@@ -313,9 +313,12 @@ module ActiveRecord
         }
       end
 
-      # def supports_ddl_transactions?
-      #   true
-      # end
+      # Vertica doesn't support ddl transactions, but ActiveRecord's migrator checks this to see
+      # if to wrap the migration in a transaction, and we need to to commit the insertion of the
+      # new version of the migration.
+      def supports_ddl_transactions?
+        true
+      end
 
       def assume_migrated_upto_version(version, migrations_paths = ActiveRecord::Migrator.migrations_paths)
         self.transaction do
