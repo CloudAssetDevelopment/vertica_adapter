@@ -128,11 +128,13 @@ module ActiveRecord
       end
 
       def exec_update(sql, name = 'SQL', binds = [])
-        if sql =~ /(.+)\s+ORDER\s+BY\s+[^\s](\s+(ASC|DESC))?/i
+        result = if sql =~ /(.+)\s+ORDER\s+BY\s+[^\s](\s+(ASC|DESC))?/i
           super $1, name, binds
         else
           super
         end
+        # return number of affected rows
+        result.rows.first.first
       end
 
       def schema_name
