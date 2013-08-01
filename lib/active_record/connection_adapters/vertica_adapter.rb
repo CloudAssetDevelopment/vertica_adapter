@@ -314,7 +314,7 @@ module ActiveRecord
           # encoding auto forces the creation of super projections
           :primary_key => "auto_increment PRIMARY KEY ENCODING AUTO",
           :string => { :name => "varchar", :limit => 255 },
-          :text => { :name => "varchar", :limit => 5000 },
+          :text => { :name => "varchar", :limit => 15000 },
           :boolean => { :name =>  "boolean" },
           :binary => { :name => "binary" },
           :integer => { :name => "int" },
