@@ -197,11 +197,11 @@ module ActiveRecord
       end
 
       def quote_table_name(name) #:nodoc:
-        # if schema_name.blank?
+        if schema_name.blank?
           name
-        # else
-        #   "#{schema_name}.#{name}"
-        # end
+        else
+          "#{schema_name}.#{name}"
+        end
       end
 
       def quoted_true
