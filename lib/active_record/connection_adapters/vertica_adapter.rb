@@ -153,13 +153,14 @@ module ActiveRecord
         sql = "SELECT * FROM columns WHERE table_name = '#{table_name}'"
 
         columns = []
-        execute(sql, name){ |field| columns << VerticaColumn.new(field[:column_name],field[:column_default],field[:data_type],field[:is_nullable])}
+        execute(sql, name){ |field| columns << VerticaColumn.new(field[:column_name],field[:column_default],lookup_cast_type(field[:data_type]),field[:is_nullable])}
         columns
       end
 
       def select(sql, name = nil, binds = [])
         log(sql,name) do
-          @connection.query(sql, row_stye: :hash, symbolize_keys: false).to_a
+          rows = @connection.query(sql, row_stye: :hash, symbolize_keys: false).to_a
+          ActiveRecord::Result.new(rows.first.stringify_keys.keys, rows.map {|r| r.values})
         end
       end
 
