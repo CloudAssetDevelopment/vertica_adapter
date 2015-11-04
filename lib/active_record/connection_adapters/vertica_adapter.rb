@@ -137,6 +137,11 @@ module ActiveRecord
         result.rows.first.first
       end
 
+      def exec_delete(sql, name = 'SQL', binds = [])
+        result = exec_query(sql, name)
+        result.rows.first.first
+      end
+
       def schema_name
         @schema ||= @connection.options[:schema]
       end
@@ -159,8 +164,13 @@ module ActiveRecord
 
       def select(sql, name = nil, binds = [])
         log(sql,name) do
+          # @connection.query(sql, row_stye: :hash, symbolize_keys: false)
           rows = @connection.query(sql, row_stye: :hash, symbolize_keys: false).to_a
-          ActiveRecord::Result.new(rows.first.stringify_keys.keys, rows.map {|r| r.values})
+          if rows.any?
+            ActiveRecord::Result.new(rows.first.stringify_keys.keys, rows.map {|r| r.values})
+          else
+            ActiveRecord::Result.new([],[])
+          end
         end
       end
 
